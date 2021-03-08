@@ -65,7 +65,7 @@ def view(rw):
                 path = os.path.join(userspace,
                                     fileobj[0][:2], fileobj[0][2:4], fileobj[0])
                 f = fs.open(path)
-                rw.start_response(headers=[('Content-Type', fileobj[2])])
+                rw.start_chunked(headers=[('Content-Type', fileobj[2])])
                 while True:
                     data = f.read(8192)
                     rw.write(data)
@@ -264,7 +264,7 @@ def mkdir(rw):
 
     cr = mydb.cursor()
     exsit = cr.execute(
-        'SELECT COUNT(*) FROM fs WHERE state=0 AND creator=? AND name=? AND parent=?',
+        'SELECT COUNT(*) FROM fs WHERE type=1 AND state=0 AND creator=? AND name=? AND parent=?',
         (user_id, name, pid)).fetchone()[0]
     if exsit > 0:
         return {'code': 42, 'msg': '目录已存在', 'data': []}
@@ -360,17 +360,17 @@ def real_upload(params, fileobj):
             is_image = True
             thumb_bytes = BytesIO()
             im = Image.open(buf)
-            im.thumbnail((375, 375), Image.ANTIALIAS)
+            im.thumbnail((750, 750), Image.ANTIALIAS)
             im.save(thumb_bytes, 'png')
             thumb_zero_blob = apsw.zeroblob(len(thumb_bytes.getvalue()))
     else:
-        path = os.path.join(userspace, uuid_[:2], uuid_[2:4])
+        os_path = os.path.join(userspace, uuid_[:2], uuid_[2:4])
         try:
-            fs.os.makedirs(path)
+            fs.os.makedirs(os_path)
         except FileExistsError:
             pass
-        path = os.path.join(path, uuid_)
-        f = fs.open(path, 'w+b')
+        os_path = os.path.join(os_path, uuid_)
+        f = fs.open(os_path, 'w+b')
         f.write(buf.getvalue())
         while True:
             data = fileobj.read1(8192)
@@ -384,7 +384,7 @@ def real_upload(params, fileobj):
             is_image = True
             thumb_bytes = BytesIO()
             im = Image.open(bytesio)
-            im.thumbnail((375, 375), Image.ANTIALIAS)
+            im.thumbnail((750, 750), Image.ANTIALIAS)
             im.save(thumb_bytes, 'png')
             thumb_zero_blob = apsw.zeroblob(len(thumb_bytes.getvalue()))
         f.close()

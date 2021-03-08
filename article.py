@@ -7,12 +7,30 @@ from slowdown.token import VerificationError
 import yun.runtime
 from yun.runtime import API, get_users_db, \
     get_userdb_by_id, get_userspace_by_id, \
-    get_userdb_by_phone, get_userspace_by_phone
+    get_userdb_by_phone, get_userspace_by_phone, \
+    get_userspace_by_permission
 from yun.api import DATA_OK, DATA_INVALID_TOKEN
 
 FILE_SIZE_BOUNDARY = 1024 * 1024 * 2
 SELECT_LIMIT = 20
 ROOT = 'root'
+
+
+@API()
+def headline(rw):
+    form = Form(rw)
+    uuid = form.get('uuid')
+    mydb, user_id = get_userspace_by_permission(1)
+    if uuid is None:
+        article = mydb.cursor().execute(
+            ('SELECT uuid, title FROM article WHERE state=0 '
+            'ORDER BY create_time DESC '
+            'LIMIT 5 OFFSET 0')).fetchall()
+    else:
+        article = mydb.cursor().execute(
+            ('SELECT title, desc, create_time, content, img, creator FROM article WHERE state=0 AND uuid=?'), (uuid, )).fetchone()
+        article = [article]
+    return {'code': 0, 'msg': 'ok', 'data': article}
 
 
 @API()
@@ -29,7 +47,7 @@ def view(rw):
         mydb, user_id = get_userdb_by_phone(phone)
 
     article = mydb.cursor().execute(
-        'SELECT * FROM article WHERE state=0 AND creator=? AND uuid=?', (user_id, uuid)).fetchone()[0]
+        'SELECT * FROM article WHERE state=0 AND creator=? AND uuid=?', (user_id, uuid)).fetchone()
     return {'code': 0, 'msg': 'ok', 'data': [article]}
 
 

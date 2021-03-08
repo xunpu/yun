@@ -75,6 +75,17 @@ def create_table_if_not_exists(db):
     )
 
 
+def get_userspace_by_permission(p_lv):
+    conn = apsw.Connection(users_db_path)
+    row = conn.cursor().execute(
+            'SELECT id FROM users WHERE permission=?', (p_lv, )
+        ).fetchone()
+    if row is None:
+        return None
+    else:
+        return get_userdb_by_id(row[0]), row[0]
+
+
 def get_userspace_by_phone(phone):
     conn = apsw.Connection(users_db_path)
     row = conn     \
@@ -210,7 +221,8 @@ def initialize(application):
             'email          NVARCHAR(128) UNIQUE     ,'
             'username       NVARCHAR( 64) UNIQUE     ,'
             'status         NVARCHAR( 64)            ,'
-            'avatar         LONGBOLB                  '
+            'avatar         LONGBOLB                 ,'
+            'permission     INTEGER                   '
             ');'
         )
     runtime = globals()

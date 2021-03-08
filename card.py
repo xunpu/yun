@@ -29,7 +29,7 @@ def view(rw):
         mydb, user_id = get_userdb_by_phone(phone)
 
     card = mydb.cursor().execute(
-        'SELECT * FROM card WHERE state=0 AND creator=? AND uuid=?', (user_id, uuid)).fetchone()[0]
+        'SELECT * FROM card WHERE state=0 AND creator=? AND uuid=?', (user_id, uuid)).fetchone()
     return {'code': 0, 'msg': 'ok', 'data': [card]}
 
 
